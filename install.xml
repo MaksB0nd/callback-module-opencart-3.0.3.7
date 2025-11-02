@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+    <name>Callback</name>
+    <version>1</version>
+    <link>dev</link>
+    <author>maksb0nd</author>
+    <code>dev</code>
+  	<file path="admin/controller/common/column_left.php">
+        <operation>
+            <search><![CDATA[// Catalog]]></search>
+            <add position="before"><![CDATA[
+              // Callback
+              $callback = array();
+
+              if ($this->user->hasPermission('access', 'extension/module/callback')) {
+                  $callback[] = array(
+                      'name'	 => $this->language->get('callback_list'),
+                      'href'     => $this->url->link('extension/module/callback', 'user_token=' . $this->session->data['user_token'], true),
+                      'children' => array()
+                  );
+              }
+
+              if ($this->user->hasPermission('access', 'extension/module/callback')) {
+                  $callback[] = array(
+                      'name'	 => $this->language->get('callback_setting'),
+                      'href'     => $this->url->link('extension/module/callback/setting', 'user_token=' . $this->session->data['user_token'], true),
+                      'children' => array()
+                  );
+              }
+
+              if ($callback) {
+                  $data['menus'][] = array(
+                      'id'       => 'menu-callback',
+                      'icon'	 => 'fa-phone',
+                      'name'	 => $this->language->get('column_left_callback'),
+                      'href'     => '',
+                      'children' => $callback
+                  );
+              }
+
+			]]></add>
+        </operation> 
+    </file>
+  <file path="admin/language/*/common/column_left.php">
+        <operation>
+          	<search><![CDATA[//]]></search>
+            <add position="before"><![CDATA[
+				$_['column_left_callback']     = 'Заявки на звонок';
+				$_['callback_list']            = 'Заявки';
+				$_['callback_setting']         = 'Настройки';
+			]]></add>
+        </operation> 
+    </file>
+  	<file path="catalog/view/theme/*/template/common/header.twig">
+        <operation>
+            <search><![CDATA[">{{ telephone }}]]></search>
+            <add position="replace"><![CDATA[ callback">{{ telephone }}]]></add>
+        </operation> 
+    </file>
+    <file path="catalog/controller/common/footer.php">
+        <operation>
+            <search><![CDATA[public function index() {]]></search>
+            <add position="after"><![CDATA[ 
+                $this->load->language('extension/module/callback');
+            ]]></add>
+        </operation> 
+    </file>
+  	<file path="catalog/view/theme/*/template/common/footer.twig">
+        <operation>
+            <search><![CDATA[<footer>]]></search>
+            <add position="before"><![CDATA[
+                <!-- callback start -->
+
+                <div id="callback-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+                    <div class="modal-dialog modal-sm">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title">{{ text_callback_title }}</h4>
+                            </div>
+                            <div class="modal-body">
+                                <div id="callback-alerts"></div>
+                                <div class="form-group">
+                                    <label for="callback-name">{{ entry_callback_name }}</label>
+                                    <input type="text" id="callback-name" class="form-control" placeholder="{{ entry_callback_name }}">
+                                </div>
+                                <div class="form-group">
+                                    <label for="callback-telephone">{{ entry_callback_telephone }}</label>
+                                    <input type="text" id="callback-telephone" class="form-control" placeholder="{{ entry_callback_telephone }}">
+                                </div>
+                                <div class="form-group">
+                                    <label for="callback-comment">{{ entry_callback_comment }}</label>
+                                    <textarea id="callback-comment" class="form-control" rows="3" placeholder="{{ entry_callback_comment }}"></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button id="callback-send" type="button" class="btn btn-primary">{{ button_callback_send }}</button>
+                                <button type="button" class="btn btn-default" data-dismiss="modal">{{ button_callback_close }}</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- callback end -->
+
+                <script>
+
+                /* callback start */
+
+                $(document).ready(function() {
+                  $(document).on('click', '.callback', function() {
+                    $('#callback-name, #callback-telephone, #callback-comment').val('');
+                    $('#callback-alerts').html('');
+                    $('#callback-modal').modal('show');
+                  });
+
+                  $(document).on('click', '#callback-send', function() {
+                    var name    = $('#callback-name').val().trim();
+                    var phone   = $('#callback-telephone').val().trim();
+                    var comment = $('#callback-comment').val().trim();
+
+                    $.ajax({
+                      url: 'index.php?route=extension/module/callback/send',
+                      type: 'post',
+                      dataType: 'json',
+                      data: {
+                        name: name,
+                        telephone: phone,
+                        comment: comment
+                      },
+                      success: function(json) {
+                        var html = '';
+                        if (json.error) {
+                          html = 
+                            '<div class="alert alert-danger alert-dismissible">' +
+                              '<i class="fa fa-exclamation-circle"></i> ' +
+                              json.error +
+                              '<button type="button" class="close" data-dismiss="alert">&times;</button>' +
+                            '</div>';
+                        } else {
+                          html = 
+                            '<div class="alert alert-success alert-dismissible">' +
+                              '<i class="fa fa-check-circle"></i> ' +
+                              json.success +
+                              '<button type="button" class="close" data-dismiss="alert">&times;</button>' +
+                            '</div>';
+                          $('#callback-modal').modal('hide');
+                        }
+                        // Insert into OpenCart's notification area
+                        $('#notification').html(html).fadeIn();
+                      },
+                      error: function() {
+                        var html =
+                          '<div class="alert alert-danger alert-dismissible">' +
+                            '<i class="fa fa-exclamation-circle"></i> Ошибка запроса' +
+                            '<button type="button" class="close" data-dismiss="alert">&times;</button>' +
+                          '</div>';
+                        $('#notification').html(html).fadeIn();
+                      }
+                    });
+                  });
+                });
+
+                /* callback end */
+
+                </script>
+            ]]></add>
+        </operation> 
+    </file>
+</modification>

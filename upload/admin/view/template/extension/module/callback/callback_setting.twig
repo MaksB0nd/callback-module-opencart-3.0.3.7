@@ -1,0 +1,190 @@
+{# admin/view/template/extension/module/callback/callback_setting.twig #}
+
+{{ header }}{{ column_left }}
+<div id="content">
+	<div class="page-header">
+		<div class="container-fluid">
+			<div class="pull-right">
+				<a href="{{ requests_url }}" class="btn btn-info">
+					<i class="fa fa-list"></i>
+					{{ button_requests }}
+				</a>
+				<button type="submit" form="form-callback" class="btn btn-success" title="{{ button_save }}">
+					<i class="fa fa-save"></i>
+				</button>
+				<a href="{{ cancel }}" class="btn btn-default" title="{{ button_cancel }}">
+					<i class="fa fa-reply"></i>
+				</a>
+			</div>
+			<h1>{{ heading_title_setting }}</h1>
+			<ul class="breadcrumb">
+				{% for bc in breadcrumbs %}
+					<li>
+						<a href="{{ bc.href }}">{{ bc.text }}</a>
+					</li>
+				{% endfor %}
+			</ul>
+		</div>
+	</div>
+	<div class="container-fluid">
+		{% if error_warning %}
+			<div class="alert alert-danger">
+				<i class="fa fa-exclamation-circle"></i>
+				{{ error_warning }}
+			</div>
+		{% endif %}
+		{% if success %}
+			<div class="alert alert-success">
+				<i class="fa fa-check-circle"></i>
+				{{ success }}
+			</div>
+		{% endif %}
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<h3 class="panel-title">
+					<i class="fa fa-pencil"></i>
+					{{ text_edit }}</h3>
+			</div>
+			<div class="panel-body">
+				<form id="form-callback" method="post" action="{{ action }}" class="form-horizontal">
+					<div class="form-group">
+						<label class="col-sm-2 control-label">{{ entry_statuses }}</label>
+						<div class="col-sm-10">
+							<h4>{{ text_default_statuses }}</h4>
+							{% for key, translations in default_statuses %}
+								<div class="panel panel-default" style="margin-bottom:15px;">
+									<div class="panel-body">
+										<label>
+											<b>{{ default_status_labels[key] }}</b>
+										</label>
+										<ul class="nav nav-tabs" style="margin-bottom:10px;">
+											{% for lang in languages %}
+												<li {% if loop.first %} class="active" {% endif %}>
+													<a href="#status_{{ key }}_{{ lang.code }}" data-toggle="tab">
+														<img src="language/{{ lang.code }}/{{ lang.code }}.png" title="{{ lang.name }}">
+														{{ lang.name }}
+													</a>
+												</li>
+											{% endfor %}
+										</ul>
+										<div class="tab-content">
+											{% for lang in languages %}
+												<div class="tab-pane{% if loop.first %} active{% endif %}" id="status_{{ key }}_{{ lang.code }}">
+													<div class="input-group">
+														<span class="input-group-addon">
+															<img src="language/{{ lang.code }}/{{ lang.code }}.png" title="{{ lang.name }}">
+														</span>
+														<input type="text" name="statuses[{{ key }}][{{ lang.code }}]" value="{{ translations[lang.code] }}" class="form-control" placeholder="{{ lang.name }}" required>
+													</div>
+												</div>
+											{% endfor %}
+										</div>
+										<div style="margin-top:10px;">
+											<label>{{ entry_status_color|format(default_status_labels[key]) }}</label>
+											<input type="text" name="statuses[{{ key }}][color]" value="{{ default_status_colors[key] }}" class="form-control" placeholder="#ffffff">
+										</div>
+									</div>
+								</div>
+							{% endfor %}
+							<hr>
+							<h4>{{ text_custom_statuses }}</h4>
+							<div id="custom-statuses-list">
+								{% for custom in custom_statuses %}
+									<div class="panel panel-default custom-status-row" style="margin-bottom:15px;">
+										<div class="panel-body">
+											<div class="form-group">
+												<label class="col-sm-2 control-label">{{ entry_status_color }}</label>
+												<div class="col-sm-10">
+													<input type="text" name="statuses[custom][{{ loop.index0 }}][color]" value="{{ custom.color }}" class="form-control" placeholder="#ffffff">
+												</div>
+											</div>
+											<ul class="nav nav-tabs">
+												{% for lang in languages %}
+													<li {% if loop.first %} class="active" {% endif %}>
+														<a href="#custom_{{ loop.parent.loop.index0 }}_{{ lang.code }}" data-toggle="tab">
+															<img src="language/{{ lang.code }}/{{ lang.code }}.png" title="{{ lang.name }}">
+															{{ lang.name }}
+														</a>
+													</li>
+												{% endfor %}
+												<li style="float:right;">
+													<button type="button" class="btn btn-danger btn-xs btn-remove-status">
+														{{ button_delete }}
+														<i class="fa fa-trash"></i>
+													</button>
+												</li>
+											</ul>
+											<div class="tab-content">
+												{% for lang in languages %}
+													<div class="tab-pane{% if loop.first %} active{% endif %}" id="custom_{{ loop.parent.loop.index0 }}_{{ lang.code }}">
+														<input type="text" name="statuses[custom][{{ loop.parent.loop.index0 }}][{{ lang.code }}]" value="{{ custom[lang.code]|default('') }}" class="form-control" placeholder="{{ lang.name }}" required>
+													</div>
+												{% endfor %}
+											</div>
+										</div>
+									</div>
+								{% endfor %}
+							</div>
+							<button type="button" id="add-custom-status" class="btn btn-success">
+								<i class="fa fa-plus"></i>
+								{{ button_add_status }}
+							</button>
+							<span class="help-block">{{ help_statuses }}</span>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="col-sm-2 control-label" for="input-status">{{ entry_status }}</label>
+						<div class="col-sm-10">
+							<select name="module_callback_status" id="input-status" class="form-control">
+								<option value="1" {% if module_callback_status %} selected {% endif %}>{{ text_enabled }}</option>
+								<option value="0" {% if not module_callback_status %} selected {% endif %}>{{ text_disabled }}</option>
+							</select>
+						</div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+	var languages = Object.values({{ languages|json_encode|raw }});
+
+	var customStatusIdx = $('#custom-statuses-list .custom-status-row').length || 0;
+
+	$('#add-custom-status').on('click', function() {
+		var idx = customStatusIdx++;
+		var html = '<div class="panel panel-default custom-status-row" style="margin-bottom:15px;"><div class="panel-body">';
+			html += '<div class="form-group"><label class="col-sm-2 control-label">{{ entry_status_color }}</label><div class="col-sm-10">';
+			html += '<input type="text" name="statuses[custom]['+idx+'][color]" class="form-control" placeholder="#ffffff">';
+			html += '</div></div><ul class="nav nav-tabs">';
+
+		languages.forEach(function(lang,i){
+			html += '<li'+(i===0?' class="active"':'')+'>';
+			html += '<a href="#custom_'+idx+'_'+lang.code+'" data-toggle="tab">';
+			html += '<img src="language/'+lang.code+'/'+lang.code+'.png"> '+lang.name;
+			html += '</a></li>';
+		});
+
+		html += '<li style="float:right;"><button type="button" class="btn btn-danger btn-xs btn-remove-status">';
+		html += '{{ button_delete }} <i class="fa fa-trash"></i></button></li></ul><div class="tab-content">';
+
+		languages.forEach(function(lang,i) {
+			html += '<div class="tab-pane'+(i===0?' active':'')+'" id="custom_'+idx+'_'+lang.code+'">';
+			html += '<input type="text" name="statuses[custom]['+idx+']['+lang.code+']" class="form-control" placeholder="'+lang.name+'" required>';
+			html += '</div>';
+		});
+
+		html += '</div></div>';
+		$('#custom-statuses-list').append(html);
+	});
+
+	$('#custom-statuses-list').on('click','.btn-remove-status', function(){
+		$(this).closest('.custom-status-row').remove();
+	});
+
+	$('body').on('click','.nav-tabs a[data-toggle="tab"]', function(e){
+		e.preventDefault();
+		$(this).tab('show');
+	});
+</script>
+{{ footer }}

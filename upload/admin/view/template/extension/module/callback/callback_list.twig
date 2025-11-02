@@ -1,0 +1,177 @@
+{{ header }}{{ column_left }}
+<div id="content">
+	<div class="page-header">
+		<div class="container-fluid">
+			<div class="pull-right">
+				<a href="{{ add }}" class="btn btn-success" title="{{ button_add }}">
+					<i class="fa fa-plus"></i>
+				</a>
+				<a href="{{ setting }}" class="btn btn-primary" title="{{ button_settings }}">
+					<i class="fa fa-cog"></i>
+				</a>
+				<button type="button" data-toggle="tooltip" title="{{ button_delete }}" class="btn btn-danger" id="button-delete">
+					<i class="fa fa-trash"></i>
+				</button>
+			</div>
+			<h1>{{ heading_title_requests }}</h1>
+			<ul class="breadcrumb">
+				{% for breadcrumb in breadcrumbs %}
+					<li>
+						<a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a>
+					</li>
+				{% endfor %}
+			</ul>
+		</div>
+	</div>
+	<div class="container-fluid">
+		{% if error_warning %}
+			<div class="alert alert-danger">
+				<i class="fa fa-exclamation-circle"></i>
+				{{ error_warning }}</div>
+		{% endif %}
+		{% if success %}
+			<div class="alert alert-success">
+				<i class="fa fa-check-circle"></i>
+				{{ success }}</div>
+		{% endif %}
+		<div class="row">
+			<div id="filter-callback" class="col-md-3 col-md-push-9 col-sm-12">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h3 class="panel-title">
+							<i class="fa fa-filter"></i>
+							{{ text_filter }}</h3>
+					</div>
+					<div class="panel-body">
+						<div class="form-group">
+							<label class="control-label" for="input-name">{{ column_name }}</label>
+							<input type="text" name="filter_name" value="{{ filter_name }}" placeholder="{{ column_name }}" id="input-name" class="form-control" autocomplete="off">
+						</div>
+						<div class="form-group">
+							<label class="control-label" for="input-telephone">{{ column_telephone }}</label>
+							<input type="text" name="filter_telephone" value="{{ filter_telephone }}" placeholder="{{ column_telephone }}" id="input-telephone" class="form-control" autocomplete="off">
+						</div>
+						<div class="form-group">
+							<label class="control-label" for="input-client-comment">{{ column_client_comment }}</label>
+							<textarea name="filter_client_comment" placeholder="{{ column_client_comment }}" id="input-client-comment" class="form-control" autocomplete="off">{{ filter_client_comment }}</textarea>
+						</div>
+						<div class="form-group">
+							<label class="control-label" for="input-admin-comment">{{ column_admin_comment }}</label>
+							<textarea name="filter_admin_comment" placeholder="{{ column_admin_comment }}" id="input-admin-comment" class="form-control" autocomplete="off">{{ filter_admin_comment }}</textarea>
+						</div>
+						<div class="form-group">
+							<label class="control-label" for="input-date-start">{{ entry_filter_date_start }}</label>
+							<input type="date" name="filter_date_start" value="{{ filter_date_start }}" id="input-date-start" class="form-control">
+						</div>
+						<div class="form-group">
+							<label class="control-label" for="input-date-end">{{ entry_filter_date_end }}</label>
+							<input type="date" name="filter_date_end" value="{{ filter_date_end }}" id="input-date-end" class="form-control">
+						</div>
+						<div class="form-group">
+							<label class="control-label" for="input-status">{{ column_status }}</label>
+							<select name="filter_status" id="input-status" class="form-control">
+								<option value="">{{ text_all_statuses }}</option>
+								{% for opt in status_options %}
+									<option value="{{ opt.value }}" {% if filter_status == opt.value %} selected {% endif %}>{{ opt.text }}</option>
+								{% endfor %}
+							</select>
+						</div>
+						<div class="form-group text-center">
+							<button type="button" id="button-filter" class="btn btn-primary" style="width:49%;">
+								<i class="fa fa-filter"></i>
+								{{ button_filter }}</button>
+							<button type="button" id="button-clear-filter" class="btn btn-danger" style="width:49%;">
+								<i class="fa fa-times"></i>
+								{{ button_reset }}</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-9 col-md-pull-3 col-sm-12">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h3 class="panel-title">
+							<i class="fa fa-list"></i>
+							{{ text_list }}</h3>
+					</div>
+					<div class="panel-body">
+						<form id="form-callback" method="post" action="{{ delete }}">
+							<div class="table-responsive">
+								<table class="table table-bordered table-hover">
+									<thead>
+										<tr>
+											<th style="width:1px;" class="text-center"><input type="checkbox" onclick="$('input[name*=\'selected\']').prop('checked', this.checked);"/></th>
+											<th class="text-center">ID</th>
+											<th class="text-center">{{ column_name }}</th>
+											<th class="text-center">{{ column_telephone }}</th>
+											<th class="text-center">{{ column_client_comment }}</th>
+											<th class="text-center">{{ column_date_added }}</th>
+											<th class="text-center">{{ column_status }}</th>
+											<th class="text-center">{{ column_action }}</th>
+										</tr>
+									</thead>
+									<tbody>
+										{% if callbacks %}
+											{% for cb in callbacks %}
+												<tr>
+													<td class="text-center"><input type="checkbox" name="selected[]" value="{{ cb.callback_id }}" {% if cb.selected %} checked {% endif %}/></td>
+													<td class="text-center">{{ cb.callback_id }}</td>
+													<td class="text-center">{{ cb.name }}</td>
+													<td class="text-center">{{ cb.telephone }}</td>
+													<td class="text-center">{{ cb.client_comment }}</td>
+													<td class="text-center">{{ cb.date_added }}</td>
+                                                    <td class="text-center">
+                                                        <span class="label" style="background-color: {{ cb.status_color }}; color: #fff; display: inline-block; padding: 3px 6px; font-size: 100%;">
+                                                            {{ cb.status_text }}
+                                                        </span>
+                                                    </td>
+													<td class="text-center">
+														<a href="{{ cb.edit }}" data-toggle="tooltip" title="{{ button_edit }}" class="btn btn-primary">
+															<i class="fa fa-pencil"></i>
+														</a>
+													</td>
+												</tr>
+											{% endfor %}
+										{% else %}
+											<tr>
+												<td class="text-center" colspan="8">{{ text_no_results }}</td>
+											</tr>
+										{% endif %}
+									</tbody>
+								</table>
+							</div>
+						</form>
+						<div class="row">
+							<div class="col-sm-6 text-left">{{ pagination }}</div>
+							<div class="col-sm-6 text-right">{{ results }}</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+    $('#button-delete').on('click', function() {
+        if (confirm('{{ text_confirm }}')) {
+            $('#form-callback').submit();
+        }
+    });
+
+    $('#button-filter').on('click',function(){
+        var url = '';
+
+        ['filter_name','filter_telephone','filter_client_comment','filter_admin_comment','filter_date_start','filter_date_end','filter_status']
+        .forEach(function(f){
+            var v = $('[name="'+f+'"]').val();
+            if (v) url += '&'+f+'='+encodeURIComponent(v);
+        });
+
+        location = 'index.php?route=extension/module/callback&user_token={{ user_token }}' + url;
+    });
+
+    $('#button-clear-filter').on('click',function(){
+        location = 'index.php?route=extension/module/callback&user_token={{ user_token }}';
+    });
+</script>
+{{ footer }}
