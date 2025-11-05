@@ -2,33 +2,7 @@
 
 class ControllerExtensionModuleCallback extends Controller {
     private $error = [];
-
-    protected function renderLicenseForm() {
-        $this->load->language('extension/module/callback');
-
-        $data = [];
-        
-        $data['heading_title_license'] = $this->language->get('heading_title_license');
-
-        $data['entry_license_key'] = $this->language->get('entry_license_key');
-        $data['entry_domain_name'] = $this->language->get('entry_domain_name');
-        $data['help_domain_name'] = $this->language->get('help_domain_name');
-        $data['button_activate'] = $this->language->get('button_activate');
-
-        $data['error_license'] = $this->error['warning'] ?? '';
-
-        $data['module_callback_license_key'] = $this->config->get('module_callback_license_key');
-        $data['module_callback_domain_name'] = $this->config->get('module_callback_domain_name');
-
-        $data['link'] = $this->url->link('extension/module/callback', 'user_token=' . $this->session->data['user_token'], true);
-
-        $data['header'] = $this->load->controller('common/header');
-        $data['column_left'] = $this->load->controller('common/column_left');
-        $data['footer'] = $this->load->controller('common/footer');
-
-        $this->response->setOutput($this->load->view('extension/module/callback/license', $data));
-    }
-
+    
     public function index() {
         $this->load->language('extension/module/callback');
 
@@ -502,4 +476,5 @@ class ControllerExtensionModuleCallback extends Controller {
         $this->load->model('extension/module/callback');
         $this->model_extension_module_callback->uninstall();
     }
+
 }
